@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Orden</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+        .order-summary {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .order-header {
+            border-bottom: 1px solid #007bff;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            color: #007bff;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        .product-list li {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .alert-capture {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        /* Ajustes para móviles */
+        @media (max-width: 768px) {
+            .order-summary {
+                padding: 15px;
+            }
+            h1, h2 {
+                font-size: 16px;
+            }
+            .section-title {
+                font-size: 14px;
+            }
+            .alert-capture {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú lateral -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h2 id="store-name">Tienda Online</h2>
+        <nav> 
+            <a href="/">Inicio</a>
+            <a href="/cart">Carrito</a>
+            <a href="/about">¿Quiénes Somos?</a>
+            {% if not session.get('user_id') %}
+                <a href="/register">Registro</a>
+                <a href="/login">Iniciar Sesión</a>
+            {% else %}
+                <a href="/logout">Cerrar Sesión</a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div id="main-content">
+        <header>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h1 id="store-logo"><img src="" alt="Logo" id="logo-image" class="logo"></h1>
+            <h1>Carrito</h1>
+        </header>
+
+    <div class="container mt-3">
+        <div class="order-summary">
+            <div class="order-header">
+                <h1 class="text-primary" style="font-size: 18px;">
+                    <i class="fas fa-check-circle"></i> Confirmación de Orden
+                </h1>
+                <p class="text-muted" style="font-size: 12px;">Revise los detalles de su orden a continuación.</p>
+            </div>
+
+            <div class="alert alert-capture">
+                <strong>¡Importante!</strong> Tome una captura de pantalla de estos detalles para su referencia futura.
+            </div>
+
+            <h2 class="section-title"><i class="fas fa-receipt"></i> Detalles de la Orden</h2>
+            <div class="mb-2"><strong>ID de la Orden:</strong> {{ order.id }}</div>
+            <div class="mb-2"><strong>Fecha de Entrega:</strong> {{ order.delivery_date }}</div>
+            <div class="mb-2"><strong>Lugar de Entrega:</strong> {{ order.delivery_location }}</div>
+            <div class="mb-2"><strong>Nombre del Cliente:</strong> {{ order.customer_name }}</div>
+            <div class="mb-2"><strong>Teléfono del Cliente:</strong> {{ order.customer_phone }}</div>
+            <div class="mb-2"><strong>Hora de Entrega:</strong> {{ order.delivery_time }}</div>
+            <div class="mb-2"><strong>Observaciones:</strong> {{ order.observation }}</div>
+            <div class="mb-2"><strong>Método de Pago:</strong> {{ order.payment_method }}</div>
+            <div class="mb-2"><strong>Tipo de Pago:</strong> {{ order.payment_type }}</div>
+
+            <h2 class="section-title"><i class="fas fa-box"></i> Productos en la Orden</h2>
+            <ul class="list-group product-list">
+                {% for item in order_items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.name }}
+                    <span class="badge badge-primary badge-pill">{{ item.quantity }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+   
+        <!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-info">
+            {% if company_info %}
+                <h3 class="footer-title">{{ company_info.name }}</h3>
+                <p>{{ company_info.description }}</p>
+                <p><strong>Dirección:</strong> {{ company_info.address }}</p>
+                <p><strong>Teléfono:</strong> {{ company_info.phone_number }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+            {% else %}
+                <p>Información de la compañía no disponible.</p>
+            {% endif %}
+        </div>
+        <div class="footer-social">
+            <h3 class="footer-title">Redes Sociales</h3>
+            <ul class="social-links">
+                {% if social_networks %}
+                    {% for network in social_networks %}
+                        <li>
+                            <a href="{{ network.network_url }}" target="_blank" title="{{ network.network_name }}">
+                                {{ network.network_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No hay redes sociales disponibles.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; {{ current_year }} {{ company_info.name if company_info else 'Tienda Online' }}. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+
+
+    <script>
+        $(document).ready(function() {
+            // Obtener el logo y el nombre de la tienda
+            $.ajax({
+                url: "/logos",
+                method: "GET",
+                success: function(data) {
+                    if (data.length > 0) {
+                        const logo = data[0];
+                        $("#store-name").text(logo.name);
+                        $("#logo-image").attr("src", `/static/${logo.image_url}`);
+                    }
+                },
+                error: function(error) {
+                    console.error("Error al obtener los logos:", error);
+                }
+            });
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
+
+    <script src="/static/js/main.js" defer></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

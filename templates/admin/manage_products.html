@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <!-- Fuentes y CSS -->
+    <link rel="stylesheet" href="/static/css/manage_products.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script>
+        // Función para realizar validaciones de los formularios
+        function validateForm(form) {
+            let isValid = true;
+
+            // Validar nombre del producto
+            const name = form.name.value.trim();
+            if (name.length < 3) {
+                alert("El nombre del producto debe tener al menos 3 caracteres.");
+                isValid = false;
+            }
+
+            // Validar descripción
+            const description = form.description.value.trim();
+            if (description.length < 10) {
+                alert("La descripción debe tener al menos 10 caracteres.");
+                isValid = false;
+            }
+
+            // Validar precio
+            const price = form.price.value.trim();
+            if (!price || isNaN(price) || price <= 0) {
+                alert("El precio debe ser un número positivo.");
+                isValid = false;
+            }
+
+            // Validar stock
+            const stock = form.stock.value.trim();
+            if (!stock || isNaN(stock) || stock < 0) {
+                alert("El stock debe ser un número mayor o igual a 0.");
+                isValid = false;
+            }
+
+            // Alerta si el producto está agotado
+            if (stock == 0) {
+                alert("El producto está agotado.");
+            }
+
+            // Validar categoría
+            const categoryId = form.category_id.value.trim();
+            if (!categoryId) {
+                alert("Por favor, seleccione una categoría.");
+                isValid = false;
+            }
+
+            // Validar imagen (opcional)
+            const image = form.image.files[0];
+            if (image && !['image/jpeg', 'image/png'].includes(image.type)) {
+                alert("La imagen debe ser en formato JPG o PNG.");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Función para filtrar productos en la tabla
+        function searchProducts() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let table = document.getElementById('productsTable');
+            let tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                let tdName = tr[i].getElementsByTagName('td')[1];
+                let tdDescription = tr[i].getElementsByTagName('td')[2];
+                let tdCategory = tr[i].getElementsByTagName('td')[6];
+                if (tdName || tdDescription || tdCategory) {
+                    let nameValue = tdName.textContent || tdName.innerText;
+                    let descriptionValue = tdDescription.textContent || tdDescription.innerText;
+                    let categoryValue = tdCategory.textContent || tdCategory.innerText;
+                    if (nameValue.toLowerCase().indexOf(input) > -1 || descriptionValue.toLowerCase().indexOf(input) > -1 || categoryValue.toLowerCase().indexOf(input) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Panel de Administración</h1>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}">Inicio</a>
+            <a href="{{ url_for('manage_products') }}">Productos</a>
+            <a href="/about">¿Quiénes somos?</a>
+            <a href="/view_orders">Órdenes</a>
+            <a href="/admin/logos">Logos</a>
+            <a href="/update_company_info">Info</a>
+            <a href="/update_social_networks">Redes Sociales</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Gestión de Productos</h1>
+
+        <!-- Sección de Formularios -->
+        <div class="form-section">
+            <!-- Formulario para agregar productos -->
+            <div class="form-container">
+                <h2>Agregar Nuevo Producto</h2>
+                <form action="{{ url_for('manage_products') }}" method="post" enctype="multipart/form-data" onsubmit="return validateForm(this)">
+                    <input type="hidden" name="add_product" value="1">
+                    <div class="form-group">
+                        <label for="name">Nombre:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descripción:</label>
+                        <input type="text" id="description" name="description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Precio:</label>
+                        <input type="number" id="price" name="price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock">Stock:</label>
+                        <input type="number" id="stock" name="stock" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category_id">Categoría:</label>
+                        <select id="category_id" name="category_id" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Imagen:</label>
+                        <label class="custom-file-label" for="image">
+                            <i class="fas fa-upload"></i> Seleccionar archivo
+                        </label>
+                        <input type="file" id="image" name="image">
+                    </div>
+                    <button type="submit" class="btn btn-success">Agregar Producto</button>
+                </form>
+            </div>
+
+            <!-- Formulario para agregar categorías -->
+            <div class="form-container">
+                <h2>Agregar Nueva Categoría</h2>
+                <form action="{{ url_for('manage_products') }}" method="post">
+                    <input type="hidden" name="add_category" value="1">
+                    <div class="form-group">
+                        <label for="category_name">Nombre de la Categoría:</label>
+                        <input type="text" id="category_name" name="category_name" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Agregar Categoría</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Buscador -->
+        <div class="search-container">
+            <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Buscar por nombre, descripción o categoría...">
+        </div>
+
+        <!-- Tabla de Productos -->
+        <div class="table-container">
+            <h2>Lista de Productos</h2>
+            <table class="table" id="productsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Imagen</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Categoría</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.description }}</td>
+                        <td>
+                            {% if product.image_url %}
+                            <img src="{{ product.image_url }}" 
+                                 alt="{{ product.name }}" 
+                                 style="width: 100px; height: auto;">
+                            {% else %}
+                            No hay imagen
+                            {% endif %}
+                        </td>
+                        <td>${{ product.price }}</td>
+                        <td>{{ product.stock }}</td>
+                        <td>{{ product.category }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% if product.stock == 0 %}
+                    <script>alert("¡Atención! El producto {{ product.name }} está agotado.");</script>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer>Gestión de Productos © 2024</footer>
+</body>
+</html>

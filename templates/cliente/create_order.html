@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Orden</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        button[type="submit"] {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            background: #e9ecef;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menú lateral -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h2 id="store-name">Tienda Online</h2>
+        <nav>
+            <a href="/">Inicio</a>
+            <a href="/cart">Carrito</a>
+            <a href="/about">¿Quiénes Somos?</a>
+            {% if not session.get('user_id') %}
+                <a href="/register">Registro</a>
+                <a href="/login">Iniciar Sesión</a>
+            {% else %}
+                <a href="/logout">Cerrar Sesión</a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div id="main-content">
+        <header>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h1 id="store-logo"><img src="" alt="Logo" id="logo-image" class="logo"></h1>
+            <h1>Carrito</h1>
+        </header>
+
+        <div class="container mt-5">
+            <h1 class="mb-4">Crear Orden</h1>
+            <form action="{{ url_for('create_order') }}" method="post" onsubmit="return validateForm()">
+                <div class="form-group">
+                    <label for="delivery_date">Fecha de Entrega:</label>
+                    <input type="date" id="delivery_date" name="delivery_date" class="form-control" required min="" />
+                </div>
+                <div class="form-group">
+                    <label for="delivery_location">Lugar de Entrega:</label>
+                    <input type="text" id="delivery_location" name="delivery_location" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="customer_name">Nombre del Cliente:</label>
+                    <input type="text" id="customer_name" name="customer_name" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="customer_phone">Teléfono del Cliente:</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" class="form-control" required pattern="^\+?[0-9]{10,15}$" title="El teléfono debe ser un número válido de 10 a 15 dígitos." />
+                </div>
+                <div class="form-group">
+                    <label for="delivery_time">Hora de Entrega:</label>
+                    <input type="time" id="delivery_time" name="delivery_time" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="observation">Observaciones:</label>
+                    <textarea id="observation" name="observation" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="payment_method">Método de Pago:</label>
+                    <select id="payment_method" name="payment_method" class="form-control" required>
+                        <option value="Efectivo">Efectivo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment_type">Tipo de Pago:</label>
+                    <select id="payment_type" name="payment_type" class="form-control" required>
+                        <option value="Pago Completo">Pago Completo</option>
+                    </select>
+                </div>
+                <h3>Productos en el Carrito</h3>
+                <ul>
+                    {% for item in cart_items %}
+                    <li>{{ item.name }} - {{ item.quantity }} x ${{ item.price }}</li>
+                    {% endfor %}
+                </ul>
+                <button type="submit" class="btn btn-primary btn-block">Crear Orden</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-info">
+            {% if company_info %}
+                <h3 class="footer-title">{{ company_info.name }}</h3>
+                <p>{{ company_info.description }}</p>
+                <p><strong>Dirección:</strong> {{ company_info.address }}</p>
+                <p><strong>Teléfono:</strong> {{ company_info.phone_number }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+            {% else %}
+                <p>Información de la compañía no disponible.</p>
+            {% endif %}
+        </div>
+        <div class="footer-social">
+            <h3 class="footer-title">Redes Sociales</h3>
+            <ul class="social-links">
+                {% if social_networks %}
+                    {% for network in social_networks %}
+                        <li>
+                            <a href="{{ network.network_url }}" target="_blank" title="{{ network.network_name }}">
+                                {{ network.network_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No hay redes sociales disponibles.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; {{ current_year }} {{ company_info.name if company_info else 'Tienda Online' }}. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+    <script>
+        $(document).ready(function() {
+            // Restricción de fecha
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("delivery_date").setAttribute("min", today);
+
+            // Restricción de hora
+            const timeInput = document.getElementById("delivery_time");
+            timeInput.addEventListener("input", function () {
+                const time = this.value;
+                const hour = parseInt(time.split(":")[0]);
+                if (hour < 7 || hour > 17) {
+                    alert("La hora debe estar entre las 07:00 y las 17:00.");
+                    this.value = "";
+                }
+            });
+
+            // Obtener logo dinámicamente
+            $.ajax({
+                url: "/logos",
+                method: "GET",
+                success: function(data) {
+                    if (data.length > 0) {
+                        const logo = data[0];
+                        $("#store-name").text(logo.name);
+                        $("#logo-image").attr("src", `/static/${logo.image_url}`);
+                    }
+                },
+                error: function(error) {
+                    console.error("Error al obtener los logos:", error);
+                }
+            });
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function validateForm() {
+            // Puedes agregar más validaciones JavaScript personalizadas si es necesario.
+            return true;  // Si todo está bien, el formulario se enviará.
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+    <!-- Menú lateral -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h2 id="store-name">Tienda Online</h2>
+        <nav> 
+            <a href="/">Inicio</a>
+            <a href="/cart">Carrito</a>
+            <a href="/about">¿Quiénes Somos?</a>
+            {% if not session.get('user_id') %}
+                <a href="/register">Registro</a>
+                <a href="/login">Iniciar Sesión</a>
+            {% else %}
+                <a href="/logout">Cerrar Sesión</a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div id="main-content">
+        <header>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h1 id="store-logo"><img src="" alt="Logo" id="logo-image" class="logo"></h1>
+            <h1>Carrito</h1>
+        </header>
+
+        <div id="message-container" class="message-container"></div>
+
+        <!-- Productos en el carrito -->
+        <div class="product-grid">
+            {% for item in cart_items %}
+            <div class="product-card" id="product-card-{{ item.id }}">
+                <img src="{{ item.image_url }}" alt="{{ item.name }}">
+                <h3>{{ item.name }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <p class="price">${{ item.price }}</p>
+                <form action="{{ url_for('update_cart', id=item.id) }}" method="POST">
+                    <label for="quantity-{{ item.id }}">Cantidad:</label>
+                    <input type="number" id="quantity-{{ item.id }}" name="quantity" value="{{ item.quantity }}" min="1" onchange="this.form.submit()">
+                </form>
+                <p class="date-added">Fecha Añadida: {{ item.added_at }}</p>
+                <form onsubmit="removeFromCart(event, this)">
+                    <button type="submit" data-item-id="{{ item.id }}">Eliminar</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Mostrar total y botón solo si hay productos en el carrito -->
+        {% if cart_items|length > 0 %}
+            <div class="total">
+                Total: ${{ total }}
+            </div>
+
+            <div class="checkout-button">
+                <a href="/create_order"><button>Proceder al Pago</button></a>
+            </div>
+        {% else %}
+            <div class="empty-cart">
+                <p>Tu carrito está vacío. ¡Añade productos para continuar!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-info">
+            {% if company_info %}
+                <h3 class="footer-title">{{ company_info.name }}</h3>
+                <p>{{ company_info.description }}</p>
+                <p><strong>Dirección:</strong> {{ company_info.address }}</p>
+                <p><strong>Teléfono:</strong> {{ company_info.phone_number }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+            {% else %}
+                <p>Información de la compañía no disponible.</p>
+            {% endif %}
+        </div>
+        <div class="footer-social">
+            <h3 class="footer-title">Redes Sociales</h3>
+            <ul class="social-links">
+                {% if social_networks %}
+                    {% for network in social_networks %}
+                        <li>
+                            <a href="{{ network.network_url }}" target="_blank" title="{{ network.network_name }}">
+                                {{ network.network_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No hay redes sociales disponibles.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; {{ current_year }} {{ company_info.name if company_info else 'Tienda Online' }}. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+
+    <script>
+        $(document).ready(function() {
+            // Obtener el logo y el nombre de la tienda
+            $.ajax({
+                url: "/logos",
+                method: "GET",
+                success: function(data) {
+                    if (data.length > 0) {
+                        const logo = data[0];
+                        $("#store-name").text(logo.name);
+                        $("#logo-image").attr("src", `/static/${logo.image_url}`);
+                    }
+                },
+                error: function(error) {
+                    console.error("Error al obtener los logos:", error);
+                }
+            });
+        });
+
+        async function removeFromCart(event, form) {
+            event.preventDefault();
+            const itemId = form.querySelector('button').getAttribute('data-item-id');
+
+            try {
+                const response = await fetch(`/cart/remove/${itemId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al eliminar el producto del carrito');
+
+                const result = await response.json();
+                showMessage(result.message);
+
+                // Eliminar el producto del DOM
+                document.querySelector(`#product-card-${itemId}`).remove();
+
+                // Verificar si quedan productos en el carrito
+                const productGrid = document.querySelector('.product-grid');
+                if (productGrid.children.length === 0) {
+                    document.querySelector('.total').style.display = 'none';
+                    document.querySelector('.checkout-button').style.display = 'none';
+
+                    const emptyCartMessage = document.createElement('div');
+                    emptyCartMessage.className = 'empty-cart';
+                    emptyCartMessage.innerHTML = '<p>Tu carrito está vacío. ¡Añade productos para continuar!</p>';
+                    productGrid.parentElement.appendChild(emptyCartMessage);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Hubo un problema al eliminar el producto del carrito. Intenta nuevamente.');
+            }
+        }
+
+        function showMessage(message) {
+            const messageContainer = document.getElementById('message-container');
+            messageContainer.innerHTML = ''; // Limpiar mensajes anteriores
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messageContainer.appendChild(messageElement);
+            messageContainer.style.display = 'block';
+
+            setTimeout(() => {
+                messageContainer.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+
+    <script src="/static/js/main.js" defer></script>
+
+</body>
+</html>

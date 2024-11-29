@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Redes Sociales</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .container {
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 100%;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: #ff0000;
+            font-size: 0.9rem;
+        }
+
+        /* Estilo adicional para enlaces */
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mejoras en los estilos de la lista de redes sociales */
+        .social-list {
+            margin-top: 20px;
+        }
+
+        .social-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .social-item input {
+            width: 45%;
+        }
+
+        .social-item button {
+            width: 45%;
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Panel de Administración</h1>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}">Inicio</a>
+            <a href="{{ url_for('manage_products') }}">Productos</a>
+            <a href="/about">¿Quiénes somos?</a>
+            <a href="/view_orders">Órdenes</a>
+            <a href="/admin/logos">Logos</a>
+            <a href="/update_company_info">Info</a>
+            <a href="/update_social_networks">Redes Sociales</a>
+
+
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Actualizar Redes Sociales</h1>
+        <form id="addSocialForm" method="POST" action="{{ url_for('add_social_network') }}">
+            <label for="network_name">Nombre de la Red Social:</label>
+            <input type="text" id="network_name" name="network_name" required>
+            <span class="error" id="networkNameError"></span>
+
+            <label for="network_url">URL de la Red Social:</label>
+            <input type="url" id="network_url" name="network_url" required>
+            <span class="error" id="networkUrlError"></span>
+
+            <button type="submit">Agregar Red Social</button>
+        </form>
+
+        <h2>Redes Sociales Existentes</h2>
+        <ul class="social-list">
+            {% for network in social_networks %}
+                <li class="social-item">
+                    <form method="POST" action="{{ url_for('edit_social_network', network_id=network.id) }}">
+                        <div class="form-group">
+                            <input type="text" name="network_name" value="{{ network.network_name }}" required>
+                            <input type="url" name="network_url" value="{{ network.network_url }}" required>
+                        </div>
+                        <button type="submit">Actualizar</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        document.getElementById("addSocialForm").addEventListener("submit", function (event) {
+            let isValid = true;
+
+            // Validar Nombre de la Red Social
+            const networkName = document.getElementById("network_name").value.trim();
+            if (networkName.length < 3) {
+                isValid = false;
+                document.getElementById("networkNameError").textContent = "El nombre debe tener al menos 3 caracteres.";
+            } else {
+                document.getElementById("networkNameError").textContent = "";
+            }
+
+            // Validar URL de la Red Social
+            const networkUrl = document.getElementById("network_url").value.trim();
+            if (!/^https?:\/\/[^\s$.?#].[^\s]*$/.test(networkUrl)) {
+                isValid = false;
+                document.getElementById("networkUrlError").textContent = "Ingrese una URL válida.";
+            } else {
+                document.getElementById("networkUrlError").textContent = "";
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

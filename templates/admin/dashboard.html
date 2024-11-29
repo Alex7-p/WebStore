@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .logo img {
+            max-width: 100px; /* Ajusta el tamaño máximo del logo */
+            height: auto; /* Mantiene la proporción de la imagen */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="" alt="Logo" id="logo-image" class="logo">
+            <h1 id="store-name">Admin Panel</h1>
+        </div>
+    </header>
+    <main>
+        <div class="welcome-section">
+            <h2>Bienvenido al Panel de Administración</h2>
+            <p>Selecciona una opción para gestionar tu tienda.</p>
+        </div>
+        <div class="card-menu">
+            <a href="{{ url_for('manage_products') }}" class="card">
+                <h3>Productos</h3>
+                <p>Gestiona el inventario de tus productos.</p>
+            </a>
+            <a href="/view_orders" class="card">
+                <h3>Órdenes</h3>
+                <p>Revisa y administra las órdenes de compra.</p>
+            </a>
+            <a href="/about" class="card">
+                <h3>¿Quiénes Somos?</h3>
+                <p>.</p>
+            </a>
+            <a href="/admin/logos" class="card">
+                <h3>Logos</h3>
+                <p>Administra los logos de la tienda.</p>
+            </a>
+
+            <a href="/update_social_networks" class="card">
+                <h3>Redes Sociales</h3>
+                <p>Configura los enlace de tus redes.</p>
+            </a>
+
+            <a href="/update_company_info" class="card">
+                <h3>Info</h3>
+                <p>Configura la info de la tienda</p>
+            </a>
+
+            <a href="/logout" class="card">
+                <h3>Cerrar Sesión</h3>
+            </a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Tienda Online - Admin</p>
+    </footer>
+    <script>
+        $(document).ready(function() {
+            // Obtener el logo y el nombre de la tienda
+            $.ajax({
+                url: "/logos",
+                method: "GET",
+                success: function(data) {
+                    if (data.length > 0) {
+                        const logo = data[0];
+                        $("#store-name").text(logo.name);
+                        $("#logo-image").attr("src", `/static/${logo.image_url}`);
+                    }
+                },
+                error: function(error) {
+                    console.error("Error al obtener los logos:", error);
+                }
+            });
+        });
+    </script>
+    <script src="/static/js/admin.js" defer></script>
+</body>
+</html>

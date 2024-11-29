@@ -1,0 +1,25 @@
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        {% if company_info %}
+            <p>{{ company_info.name }}</p>
+            <p>{{ company_info.description }}</p>
+            <p>Dirección: {{ company_info.address }}</p>
+            <p>Teléfono: {{ company_info.phone_number }}</p>
+            <p>Email: <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+        {% else %}
+            <p>Información de la compañía no disponible.</p>
+        {% endif %}
+    </div>
+    <div class="social-links">
+        <ul>
+            {% if social_networks %}
+                {% for network in social_networks %}
+                    <li><a href="{{ network.network_url }}" target="_blank">{{ network.network_name }}</a></li>
+                {% endfor %}
+            {% else %}
+                <li>No hay redes sociales disponibles.</li>
+            {% endif %}
+        </ul>
+    </div>
+</footer>

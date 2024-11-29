@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiénes Somos</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/somos.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <!-- Menú lateral -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h2 id="store-name">Tienda Online</h2>
+        <nav> 
+            <a href="/">Inicio</a>
+            <a href="/cart">Carrito</a>
+            <a href="/about">¿Quiénes Somos?</a>
+            {% if not session.get('user_id') %}
+                <a href="/register">Registro</a>
+                <a href="/login">Iniciar Sesión</a>
+            {% else %}
+                <a href="/logout">Cerrar Sesión</a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <header>
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <h1 id="store-logo"><img src="" alt="Logo" id="logo-image" class="logo"></h1>
+        <p></p>
+    </header>
+
+    <div class="about-section">
+        <div class="about-content">
+            <h1>{{ about_info.title }}</h1>
+            <p>{{ about_info.description }}</p>
+        </div>
+        {% if about_info.image_url %}
+        <div class="about-image">
+            <img src="{{ url_for('static', filename=about_info.image_url) }}" alt="Imagen de Quiénes Somos">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-info">
+            {% if company_info %}
+                <h3 class="footer-title">{{ company_info.name }}</h3>
+                <p>{{ company_info.description }}</p>
+                <p><strong>Dirección:</strong> {{ company_info.address }}</p>
+                <p><strong>Teléfono:</strong> {{ company_info.phone_number }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+            {% else %}
+                <p>Información de la compañía no disponible.</p>
+            {% endif %}
+        </div>
+        <div class="footer-social">
+            <h3 class="footer-title">Redes Sociales</h3>
+            <ul class="social-links">
+                {% if social_networks %}
+                    {% for network in social_networks %}
+                        <li>
+                            <a href="{{ network.network_url }}" target="_blank" title="{{ network.network_name }}">
+                                {{ network.network_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No hay redes sociales disponibles.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; {{ current_year }} {{ company_info.name if company_info else 'Tienda Online' }}. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+
+    <script>
+        $(document).ready(function() {
+            // Obtener el logo y el nombre de la tienda
+            $.ajax({
+                url: "/logos",
+                method: "GET",
+                success: function(data) {
+                    if (data.length > 0) {
+                        const logo = data[0];
+                        $("#store-name").text(logo.name);
+                        $("#logo-image").attr("src", `/static/${logo.image_url}`);
+                    }
+                },
+                error: function(error) {
+                    console.error("Error al obtener los logos:", error);
+                }
+            });
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
+
+    <script src="/static/js/main.js" defer></script>
+
+</body>
+</html>
